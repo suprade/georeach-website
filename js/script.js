@@ -617,3 +617,60 @@ document.addEventListener("click", function (event) {
   window.location.hash = "#/contact";
 });
 
+/* ---------- PREMIUM ANIMATED CURSOR ---------- */
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Disable on touch/mobile devices
+  if (window.matchMedia("(pointer: coarse)").matches) return;
+
+  const cursorDot = document.createElement("div");
+  const cursorRing = document.createElement("div");
+
+  cursorDot.id = "custom-cursor-dot";
+  cursorRing.id = "custom-cursor-ring";
+
+  document.body.appendChild(cursorDot);
+  document.body.appendChild(cursorRing);
+
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+
+  let ringX = mouseX;
+  let ringY = mouseY;
+
+  document.addEventListener("mousemove", function (e) {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+
+    cursorDot.style.left = mouseX + "px";
+    cursorDot.style.top = mouseY + "px";
+  });
+
+  function animateCursor() {
+    ringX += (mouseX - ringX) * 0.15;
+    ringY += (mouseY - ringY) * 0.15;
+
+    cursorRing.style.left = ringX + "px";
+    cursorRing.style.top = ringY + "px";
+
+    requestAnimationFrame(animateCursor);
+  }
+
+  animateCursor();
+
+  const interactiveElements = document.querySelectorAll(
+    "a, button, input, textarea, select, [role='button']"
+  );
+
+  interactiveElements.forEach(function (element) {
+    element.addEventListener("mouseenter", function () {
+      cursorRing.classList.add("cursor-hover");
+      cursorDot.classList.add("cursor-hover-dot");
+    });
+
+    element.addEventListener("mouseleave", function () {
+      cursorRing.classList.remove("cursor-hover");
+      cursorDot.classList.remove("cursor-hover-dot");
+    });
+  });
+});
