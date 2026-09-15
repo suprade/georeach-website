@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>GeoReach Admin Dashboard</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #131b2e;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* LOGIN */
+
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: linear-gradient(135deg, #eef3ff, #ffffff);
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 36px;
+      box-shadow: 0 20px 60px rgba(20, 40, 90, 0.12);
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 800;
+      color: #004ac6;
+      margin-bottom: 8px;
+    }
+
+    .login-title {
+      font-size: 26px;
+      font-weight: 800;
+      margin: 0 0 8px;
+    }
+
+    .login-subtitle {
+      color: #687083;
+      margin-bottom: 28px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #dce2ef;
+      border-radius: 12px;
+      padding: 13px 14px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #2563eb;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .login-btn {
+      width: 100%;
+      border: 0;
+      border-radius: 999px;
+      padding: 14px;
+      background: #004ac6;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .login-btn:hover {
+      background: #003da5;
+    }
+
+    #login-error {
+      margin-top: 15px;
+      color: #dc2626;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    /* DASHBOARD */
+
+    #dashboard {
+      min-height: 100vh;
+    }
+
+    .topbar {
+      height: 72px;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e9f2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+    }
+
+    .brand {
+      font-size: 21px;
+      font-weight: 800;
+      color: #004ac6;
+    }
+
+    .admin-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .admin-email {
+      font-size: 13px;
+      color: #687083;
+    }
+
+    .logout-btn {
+      border: 1px solid #dce2ef;
+      background: #fff;
+      color: #131b2e;
+      border-radius: 999px;
+      padding: 9px 16px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .dashboard-content {
+      padding: 30px;
+      max-width: 1500px;
+      margin: auto;
+    }
+
+    .welcome {
+      margin-bottom: 24px;
+    }
+
+    .welcome h1 {
+      margin: 0 0 6px;
+      font-size: 30px;
+    }
+
+    .welcome p {
+      margin: 0;
+      color: #687083;
+    }
+
+    /* STATS */
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border: 1px solid #e6eaf2;
+      border-radius: 18px;
+      padding: 22px;
+    }
+
+    .stat-label {
+      color: #687083;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .stat-number {
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    /* TOOLBAR */
+
+    .toolbar {
+      background: #fff;
+      border: 1px solid #e6eaf2;
+      border-radius: 18px;
+      padding: 18px;
+      display: flex;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .toolbar input {
+      flex: 1;
+    }
+
+    .toolbar select {
+      max-width: 180px;
+    }
+
+    /* TABLE */
+
+    .table-card {
+      background: #fff;
+      border: 1px solid #e6eaf2;
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1000px;
+    }
+
+    th,
+    td {
+      padding: 15px;
+      border-bottom: 1px solid #edf0f5;
+      text-align: left;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #f8f9fc;
+      font-weight: 800;
+      color: #434655;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .status-new {
+      background: #e8f0ff;
+      color: #004ac6;
+    }
+
+    .status-contacted {
+      background: #fff4d6;
+      color: #946200;
+    }
+
+    .status-converted {
+      background: #e4f8ed;
+      color: #087443;
+    }
+
+    .status-closed {
+      background: #edf0f5;
+      color: #596273;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-right: 4px;
+      border: 1px solid #dce2ef;
+      background: #fff;
+      color: #131b2e;
+      cursor: pointer;
+    }
+
+    .action-btn:hover {
+      background: #f3f6ff;
+    }
+
+    .empty {
+      padding: 50px;
+      text-align: center;
+      color: #687083;
+    }
+
+    .loading {
+      padding: 40px;
+      text-align: center;
+      color: #687083;
+    }
+
+    @media (max-width: 900px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .dashboard-content {
+        padding: 18px;
+      }
+
+      .topbar {
+        padding: 0 18px;
+      }
+
+      .admin-email {
+        display: none;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
+        flex-direction: column;
+      }
+
+      .toolbar select {
+        max-width: none;
+      }
+
+      .login-card {
+        padding: 26px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- LOGIN SCREEN -->
+
+  <section id="login-screen">
+
+    <div class="login-card">
+
+      <div class="logo">GeoReach</div>
+
+      <h1 class="login-title">
+        Admin Dashboard
+      </h1>
+
+      <p class="login-subtitle">
+        Sign in to manage your leads.
+      </p>
+
+      <form id="login-form">
+
+        <div class="field">
+          <label for="login-email">
+            Email
+          </label>
+
+          <input
+            type="email"
+            id="login-email"
+            placeholder="Admin email"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="login-password">
+            Password
+          </label>
+
+          <input
+            type="password"
+            id="login-password"
+            placeholder="Password"
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="login-btn"
+        >
+          Sign In
+        </button>
+
+        <div id="login-error"></div>
+
+      </form>
+
+    </div>
+
+  </section>
+
+
+  <!-- DASHBOARD -->
+
+  <section id="dashboard" class="hidden">
+
+    <header class="topbar">
+
+      <div class="brand">
+        GeoReach
+      </div>
+
+      <div class="admin-info">
+
+        <span
+          id="admin-email"
+          class="admin-email"
+        ></span>
+
+        <button
+          id="logout-btn"
+          class="logout-btn"
+        >
+          Logout
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <main class="dashboard-content">
+
+      <div class="welcome">
+
+        <h1>
+          Lead Management
+        </h1>
+
+        <p>
+          Manage and follow up with your GeoReach leads.
+        </p>
+
+      </div>
+
+
+      <!-- STATS -->
+
+      <div class="stats-grid">
+
+        <div class="stat-card">
+          <div class="stat-label">
+            Total Leads
+          </div>
+
+          <div
+            id="total-leads"
+            class="stat-number"
+          >
+            0
+          </div>
+        </div>
+
+
+        <div class="stat-card">
+          <div class="stat-label">
+            New Leads
+          </div>
+
+          <div
+            id="new-leads"
+            class="stat-number"
+          >
+            0
+          </div>
+        </div>
+
+
+        <div class="stat-card">
+          <div class="stat-label">
+            Contacted
+          </div>
+
+          <div
+            id="contacted-leads"
+            class="stat-number"
+          >
+            0
+          </div>
+        </div>
+
+
+        <div class="stat-card">
+          <div class="stat-label">
+            Converted
+          </div>
+
+          <div
+            id="converted-leads"
+            class="stat-number"
+          >
+            0
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- SEARCH / FILTER -->
+
+      <div class="toolbar">
+
+        <input
+          type="search"
+          id="lead-search"
+          placeholder="Search leads by name, phone, email or company..."
+        />
+
+        <select id="status-filter">
+
+          <option value="">
+            All Statuses
+          </option>
+
+          <option value="New">
+            New
+          </option>
+
+          <option value="Contacted">
+            Contacted
+          </option>
+
+          <option value="Converted">
+            Converted
+          </option>
+
+          <option value="Closed">
+            Closed
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- LEADS TABLE -->
+
+      <div class="table-card">
+
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Name
+                </th>
+
+                <th>
+                  Contact
+                </th>
+
+                <th>
+                  Company
+                </th>
+
+                <th>
+                  Service
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Follow-up
+                </th>
+
+                <th>
+                  Actions
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="leads-table-body">
+
+              <tr>
+                <td
+                  colspan="7"
+                  class="loading"
+                >
+                  Loading leads...
+                </td>
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </section>
+
+
+  <script src="admin.js"></script>
+
+</body>
+</html>
